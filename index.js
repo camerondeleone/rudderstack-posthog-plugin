@@ -248,31 +248,33 @@ export async function setupPlugin({ config, global, jobs }) {
 // onEvent is used to export events without modifying them
 export async function onEvent(event, { global }) {
     let rudderPayload = {}
-    // add const value props
-    constructPayload(rudderPayload, event, constants, true)
+    if global.limitToEventType.split(',').includes(event.event) {
+        // add const value props
+        constructPayload(rudderPayload, event, constants, true)
 
-    // add generic props
-    constructPayload(rudderPayload, event, generic)
+        // add generic props
+        constructPayload(rudderPayload, event, generic)
 
-    // get specific event props
-    const eventName = get(event, 'event')
-    const { type, mapping } = eventToMapping[eventName] ? eventToMapping[eventName] : eventToMapping['default']
+        // get specific event props
+        const eventName = get(event, 'event')
+        const { type, mapping } = eventToMapping[eventName] ? eventToMapping[eventName] : eventToMapping['default']
 
-    //set Rudder payload type
-    set(rudderPayload, 'type', type)
+        //set Rudder payload type
+        set(rudderPayload, 'type', type)
 
-    // set Rudder event props
-    constructPayload(rudderPayload, event, mapping)
+        // set Rudder event props
+        constructPayload(rudderPayload, event, mapping)
 
-    // add all pther posthog keys under props not starting with $ to Rudder payload properties
-    Object.keys(event.properties).forEach((propKey) => {
-        if (propKey.slice(0, 1) != '$' && event.properties[propKey] != undefined && event.properties[propKey] != null) {
-            set(rudderPayload, `properties.${propKey}`, event.properties[propKey])
-        }
-    })
+        // add all pther posthog keys under props not starting with $ to Rudder payload properties
+        Object.keys(event.properties).forEach((propKey) => {
+            if (propKey.slice(0, 1) != '$' && event.properties[propKey] != undefined && event.properties[propKey] != null) {
+                set(rudderPayload, `properties.${propKey}`, event.properties[propKey])
+            }
+        })
 
-    // Add event to the buffer which will flush in the background
-    global.buffer.add(rudderPayload, JSON.stringify(rudderPayload).length)
+        // Add event to the buffer which will flush in the background
+        global.buffer.add(rudderPayload, JSON.stringify(rudderPayload).length)
+    }
 }
 
 async function sendToRudder(batch, { global, jobs }) {
