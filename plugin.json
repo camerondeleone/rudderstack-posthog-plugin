@@ -20,6 +20,15 @@
           "default": "",
           "required": true,
           "secret": true
+      },
+      {
+        "key": "limitToEventType",
+        "hint": "Comma-separated list of event types to keep - if specified it will not sync all others to rudder, but will still return them for further processing.",
+        "name": "Events to sync",
+        "type": "string",
+        "default": "",
+        "required": false,
+        "secret": false
       }
   ]
 }
